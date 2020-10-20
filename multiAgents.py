@@ -69,12 +69,33 @@ class ReflexAgent(Agent):
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        "Lo pasamos a lista porque esta como matriz y tendriamos que recorrerla dos veces"
+        newFood = (successorGameState.getFood()).asList()
+
+        "Cuanto mayor puntuacion mejor, por lo que vamos a sumar todo lo posible"
+        score = 0
+        for food in newFood:
+            path = util.manhattanDistance(food, newPos)
+            if path > 0:
+                score = score + (1/path)
+
+
+        for ghost in newGhostStates:
+            ghostpos = ghost.getPosition()
+
+            if ghost.scaredTimer <= 1:
+                if util.manhattanDistance(newPos, ghostpos) <= 1:
+                    score = -9999999
+            else:
+                if util.manhattanDistance(newPos, ghostpos) <= 1:
+                    score = +99
+
+        return score + successorGameState.getScore()
+
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -105,6 +126,10 @@ class MultiAgentSearchAgent(Agent):
         self.index = 0 # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+        self.action1 = Directions.STOP
+        self.value_max = -99999
+        self.value_min = 99999
+        self.value_avg = 99999
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
